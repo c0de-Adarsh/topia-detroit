@@ -23,7 +23,7 @@ const CheckIn = () => {
   React.useEffect(() => {
     const loadImage = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/pagesetting?pagename=Login');
+        const response = await fetch('https://api.mypsyguide.io/api/pagesetting?pagename=Login');
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data && result.data.length > 0) {
@@ -71,7 +71,7 @@ const CheckIn = () => {
       setLoading(true);
       setError('');
 
-      const response = await fetch('http://localhost:5000/api/visitors/checkin', {
+      const response = await fetch('https://api.mypsyguide.io/api/visitors/checkin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
