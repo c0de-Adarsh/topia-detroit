@@ -14,6 +14,7 @@ const CheckIn = () => {
   const [visitorData, setVisitorData] = useState(null);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [loginImage, setLoginImage] = React.useState(null);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
   React.useEffect(() => {
     setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -70,7 +71,8 @@ const CheckIn = () => {
     try {
       setLoading(true);
       setError('');
-
+// http://localhost:5000/api
+// https://api.mypsyguide.io/api
       const response = await fetch('https://api.mypsyguide.io/api/visitors/checkin', {
         method: 'POST',
         headers: {
@@ -82,6 +84,7 @@ const CheckIn = () => {
       const result = await response.json();
 
       if (result.success) {
+        // User is registered - show welcome screen
         setVisitorData(result.data);
         setShowWelcome(true);
         
@@ -93,7 +96,15 @@ const CheckIn = () => {
           setVisitorData(null);
         }, 30000);
       } else {
-        setError(result.message || 'Check-in failed. Please try again.');
+        // Check if user is not registered (403 error or specific message)
+        if (response.status === 403 || result.isRegistered === false || (result.message && result.message.toLowerCase().includes('not registered'))) {
+          // Show registration required modal
+          setShowRegistrationModal(true);
+          setError(''); // Clear any error message
+        } else {
+          // Other errors
+          setError(result.message || 'Check-in failed. Please try again.');
+        }
       }
     } catch (err) {
       console.error('Check-in error:', err);
@@ -355,6 +366,69 @@ const CheckIn = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Registration Required Modal */}
+      {showRegistrationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Background - Blue */}
+          <div className="absolute inset-0 bg-[#80A6F7]"></div>
+          
+          {/* Modal Content - No White Box */}
+          <div className="relative max-w-2xl w-full text-center transform animate-bounce-in">
+            {/* Warning Icon with Glow */}
+            <div className="mb-8 relative">
+              {/* Glow Rings */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-40 h-40 rounded-full bg-white/20 animate-ping-slow"></div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center animation-delay-300">
+                <div className="w-32 h-32 rounded-full bg-white/30 animate-ping-slow"></div>
+              </div>
+              
+              {/* Main Icon */}
+              <div className="relative w-32 h-32 bg-white rounded-full mx-auto flex items-center justify-center shadow-2xl">
+                <svg className="w-16 h-16 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-4xl md:text-5xl font-black text-white mb-6 drop-shadow-lg">
+              Registration Required
+            </h1>
+
+            {/* Message */}
+            <div className="space-y-4 mb-8">
+              <p className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
+                You haven't registered yet! 🚫
+              </p>
+              <p className="text-xl text-white/90 font-semibold drop-shadow-lg">
+                Please complete your registration first before checking in.
+              </p>
+            </div>
+
+            {/* Instructions Box */}
+            <div className="bg-white/20 backdrop-blur-sm border-3 border-white rounded-2xl p-6 mb-8 transform hover:scale-105 transition-transform">
+              <p className="text-lg text-white font-bold drop-shadow-lg">
+                📱 Visit our website to register and become a member
+              </p>
+            </div>
+
+            {/* OK Button */}
+            <button
+              onClick={() => {
+                setShowRegistrationModal(false);
+                setPhoneNumber('');
+                setFormData({ phone: '' });
+              }}
+              className="bg-white text-[#80A6F7] hover:bg-gray-100 font-black py-4 px-12 rounded-full transition-all duration-300 transform hover:scale-110 shadow-2xl text-xl"
+            >
+              OK, Got It! ✨
+            </button>
+          </div>
+        </div>
       )}
 
       <style jsx>{`
